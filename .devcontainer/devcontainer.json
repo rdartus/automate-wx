@@ -1,0 +1,37 @@
+//devcontainer.json
+{
+    "name": "GoDev",
+  
+    // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+    // "image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
+    // "image": "ghcr.io/go-rod/rod:latest",
+    "build": { "dockerfile": "Dockerfile" },
+  
+    // Features to add to the dev container. More info: https://containers.dev/features.
+    "features": {
+        "ghcr.io/devcontainers/features/node:1": {},
+        "ghcr.io/devcontainers/features/common-utils:2": {},
+        "ghcr.io/devcontainers/features/git:1": {},
+        "ghcr.io/devcontainers/features/desktop-lite:1": {}
+    },
+  
+    "customizations": {
+      "vscode": {
+        "settings": {},
+        "extensions": ["streetsidesoftware.code-spell-checker", "golang.go","ms-azuretools.vscode-docker"]
+      }
+    },
+  
+    "postCreateCommand": "go install github.com/go-delve/delve/cmd/dlv@latest",
+    "forwardPorts": [6080],
+  
+    "portsAttributes": {
+      "3000": {
+        "label": "Hello Remote World",
+        "onAutoForward": "notify"
+      }
+    }
+  
+  
+    // "remoteUser": "root"
+  }

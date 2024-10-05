@@ -1,0 +1,11 @@
+FROM golang as go
+
+ARG goproxy="https://proxy.golang.org,direct"
+
+COPY . /automate
+WORKDIR /automate
+RUN go env -w GOPROXY=$goproxy
+RUN go build -o test-automate ./ 
+RUN go run ./utils/get-browser
+
+CMD rod-manager
