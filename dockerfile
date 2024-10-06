@@ -47,3 +47,5 @@ RUN sed -i "s|http://archive.ubuntu.com|$apt_sources|g" /etc/apt/sources.list &&
 ENTRYPOINT ["dumb-init", "--"]
 
 CMD ["xvfb-run", "-e", "/dev/stdout","-a", "test-automate"] 
+
+LABEL org.opencontainers.image.source="https://github.com/rdartus/automate-wx"
