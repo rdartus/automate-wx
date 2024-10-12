@@ -240,10 +240,10 @@ func checkin(page *rod.Page, cookies []*proto.NetworkCookie, siteUrl string) {
 
 func checkout(page *rod.Page, cookies []*proto.NetworkCookie, siteUrl string) {
 	fmt.Println("------------------------Start checkin------------------------------------")
-	checkout_S := `#app div.mx-auto > div.flex button`
+	checkout_S := `#app div.mx-auto > div.flex div:nth-child(2) button:not(:disabled)`
 
 	wait := page.WaitNavigation(proto.PageLifecycleEventNameNetworkAlmostIdle)
-	page.MustNavigate(siteUrl+"/manage/subscriptions/daily-rewards")
+	page.MustNavigate(siteUrl + "manage/subscriptions/daily-rewards")
 	wait()
 
 	verif2, _, err := page.Has(`button[aria-label="VIP"]`)
@@ -265,7 +265,7 @@ func checkout(page *rod.Page, cookies []*proto.NetworkCookie, siteUrl string) {
 	fmt.Println("jquery imported, version " + version.Value.Str())
 	page.WaitDOMStable(100*time.Millisecond, 0.01)
 
-	rewards := page.MustElements(checkout_S)
+	rewards, err := page.Elements(checkout_S)
 	for i := 0; i <= len(rewards)-1; i++ {
 		reward := rewards[i]
 		reward.MustClick()
@@ -333,6 +333,7 @@ func main() {
 		byteValue, _ := io.ReadAll(jsonFile)
 		json.Unmarshal([]byte(byteValue), &result)
 	} else {
+		fmt.Println("No list.json found")
 		panic(err)
 	}
 	// if we os.Open returns an error then handle it
@@ -385,7 +386,7 @@ func main() {
 
 	login(page, cookies, siteUrl)
 	checkin(page, cookies, siteUrl)
-	// checkout(page, cookies, siteUrl)
+	checkout(page, cookies, siteUrl)
 
 	for _, book := range books {
 		tpage := page.Timeout(10 * time.Minute)
@@ -400,7 +401,7 @@ func main() {
 		tpage.CancelTimeout()
 	}
 
-	// checkout(page, cookies, siteUrl)
+	checkout(page, cookies, siteUrl)
 }
 
 // utils.TypeConverter
