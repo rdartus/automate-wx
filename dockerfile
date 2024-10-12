@@ -50,5 +50,5 @@ CMD ["xvfb-run", "-e", "/dev/stdout","-a", "test-automate"]
 
 LABEL org.opencontainers.image.source="https://github.com/rdartus/automate-wx"
 LABEL org.opencontainers.image.authors="rdartus <richard.dartus@gmail.com>" 
-LABEL org.opencontainers.image.descriptio="Wx chapter opener"
+LABEL org.opencontainers.image.description="Wx chapter opener"
 LABEL org.opencontainers.image.licenses="MIT"

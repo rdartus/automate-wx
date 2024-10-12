@@ -196,6 +196,84 @@ out:
 
 }
 
+func checkin(page *rod.Page, cookies []*proto.NetworkCookie, siteUrl string) {
+	fmt.Println("------------------------Start checkin------------------------------------")
+	checkin_S := `()=> jQuery('button:contains("Got it")')[0]`
+
+	wait := page.WaitNavigation(proto.PageLifecycleEventNameNetworkAlmostIdle)
+	page.MustNavigate(siteUrl)
+	wait()
+
+	verif2, _, err := page.Has(`button[aria-label="VIP"]`)
+	if !verif2 {
+		page.MustReload()
+		page.WaitDOMStable(4*time.Second, 0.01)
+	}
+
+	wait = page.WaitRequestIdle(1*time.Second, []string{".*(jquery).*"}, []string{".*"}, nil)
+	page.MustEval(`() => console.log("hello world")`)
+	page.Eval(`() => import('https://code.jquery.com/jquery-3.7.1.min.js')`)
+	wait()
+	version, err := page.Eval(`() => jQuery.fn.jquery`)
+	if err != nil {
+		fmt.Println("error import Jquery :")
+		fmt.Println(err)
+	}
+
+	fmt.Println("jquery imported, version " + version.Value.Str())
+	page.WaitDOMStable(4100*time.Millisecond, 0.01)
+	// page.Race().ElementByJS(rod.Eval(checkin_S)).MustHandle(func(e *rod.Element) {
+	// 	// Fais quelque chose avec l'élément, par exemple, clique dessus
+	// 	e.MustClick()
+	// }).MustDo().Timeout(10 * time.Second)
+
+	checkin, err2 := page.ElementByJS(rod.Eval(checkin_S))
+	if err2 != nil {
+		fmt.Println("Check in not necessary :")
+		page.MustEval(`(a) => console.log(a)`, checkin_S)
+		fmt.Println(err2)
+		return
+	}
+	checkin.MustClick()
+
+}
+
+func checkout(page *rod.Page, cookies []*proto.NetworkCookie, siteUrl string) {
+	fmt.Println("------------------------Start checkin------------------------------------")
+	checkout_S := `#app div.mx-auto > div.flex button`
+
+	wait := page.WaitNavigation(proto.PageLifecycleEventNameNetworkAlmostIdle)
+	page.MustNavigate(siteUrl+"/manage/subscriptions/daily-rewards")
+	wait()
+
+	verif2, _, err := page.Has(`button[aria-label="VIP"]`)
+	if !verif2 {
+		page.MustReload()
+		page.WaitDOMStable(4*time.Second, 0.01)
+	}
+
+	wait = page.WaitRequestIdle(1*time.Second, []string{".*(jquery).*"}, []string{".*"}, nil)
+	page.MustEval(`() => console.log("hello world")`)
+	page.Eval(`() => import('https://code.jquery.com/jquery-3.7.1.min.js')`)
+	wait()
+	version, err := page.Eval(`() => jQuery.fn.jquery`)
+	if err != nil {
+		fmt.Println("error import Jquery :")
+		fmt.Println(err)
+	}
+
+	fmt.Println("jquery imported, version " + version.Value.Str())
+	page.WaitDOMStable(100*time.Millisecond, 0.01)
+
+	rewards := page.MustElements(checkout_S)
+	for i := 0; i <= len(rewards)-1; i++ {
+		reward := rewards[i]
+		reward.MustClick()
+		page.WaitDOMStable(100*time.Millisecond, 0.01)
+	}
+
+}
+
 func login(page *rod.Page, cookies []*proto.NetworkCookie, siteUrl string) {
 	fmt.Println("------------------------Start Login------------------------------------")
 	profile_S := "button[aria-label='profile nav']"
@@ -306,9 +384,10 @@ func main() {
 	var cookies []*proto.NetworkCookie
 
 	login(page, cookies, siteUrl)
+	checkin(page, cookies, siteUrl)
+	// checkout(page, cookies, siteUrl)
 
 	for _, book := range books {
-		// tpage := page.Timeout(1 * time.Minute)
 		tpage := page.Timeout(10 * time.Minute)
 		err := rod.Try(func() {
 			GoBook(tpage, cookies, book)
@@ -321,10 +400,7 @@ func main() {
 		tpage.CancelTimeout()
 	}
 
-	// data, err := TypeConverter[[]*proto.NetworkCookieParam](&cookies)
-	// if err != nil {
-	// 	log.Println(err.Error())
-	// }
+	// checkout(page, cookies, siteUrl)
 }
 
 // utils.TypeConverter
