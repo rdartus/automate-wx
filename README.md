@@ -7,6 +7,7 @@ Add the env vars to the docker compose file
 export USER_WX="xxx"
 export PASSWORD_WX="xxx"
 
+nano ~/.bashrc
 ```
 
 ## create / bindmount list.json
@@ -18,4 +19,10 @@ export PASSWORD_WX="xxx"
         "url to book"
     ]
 }
+```
+
+## Build it with Bake
+```
+docker buildx install
+docker build bake
 ```

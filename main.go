@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -312,10 +313,44 @@ func login(page *rod.Page, cookies []*proto.NetworkCookie, siteUrl string) {
 	fmt.Println("Send Login")
 	page.MustElement("button[value='login']").MustClick()
 	wait()
-
 	cookies, _ = page.Browser().GetCookies()
 	fmt.Println(cookies)
 
+}
+
+func timeoutchan(fn interface{}, name string, duration time.Duration, args ...interface{}) error {
+	done := make(chan bool, 1)
+
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				fmt.Printf("Recovered in %s: %v\n", name, r)
+			}
+		}()
+
+		fnValue := reflect.ValueOf(fn)
+		if fnValue.Kind() != reflect.Func {
+			fmt.Println("timeout requires a function")
+			done <- true
+			return
+		}
+
+		fnArgs := make([]reflect.Value, len(args))
+		for i, arg := range args {
+			fnArgs[i] = reflect.ValueOf(arg)
+		}
+
+		fnValue.Call(fnArgs)
+		fmt.Printf("%s terminée\n", name)
+		done <- true
+	}()
+
+	select {
+	case <-done:
+		return nil
+	case <-time.After(duration):
+		return fmt.Errorf("Erreur: %s a pris plus de %v", name, duration)
+	}
 }
 func main() {
 
@@ -384,9 +419,22 @@ func main() {
 
 	var cookies []*proto.NetworkCookie
 
-	login(page, cookies, siteUrl)
-	checkin(page, cookies, siteUrl)
-	checkout(page, cookies, siteUrl)
+	err := timeoutchan(login, "login", 5*time.Minute, page, cookies, siteUrl)
+	if err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
+
+	err = timeoutchan(checkin, "login", 5*time.Minute, page, cookies, siteUrl)
+	if err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
+	err = timeoutchan(checkout, "login", 5*time.Minute, page, cookies, siteUrl)
+	if err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
 
 	for _, book := range books {
 		tpage := page.Timeout(10 * time.Minute)
