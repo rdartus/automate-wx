@@ -425,12 +425,12 @@ func main() {
 		panic(err)
 	}
 
-	err = timeoutchan(checkin, "login", 5*time.Minute, page, cookies, siteUrl)
+	err = timeoutchan(checkin, "checkin", 5*time.Minute, page, cookies, siteUrl)
 	if err != nil {
 		fmt.Println(err)
 		panic(err)
 	}
-	err = timeoutchan(checkout, "login", 5*time.Minute, page, cookies, siteUrl)
+	err = timeoutchan(checkout, "checkout", 5*time.Minute, page, cookies, siteUrl)
 	if err != nil {
 		fmt.Println(err)
 		panic(err)
