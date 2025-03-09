@@ -1,4 +1,4 @@
-FROM golang:1.22.5-bookworm AS go
+FROM golang:1.24.1-bookworm AS go
 
 ARG goproxy="https://proxy.golang.org,direct"
 
