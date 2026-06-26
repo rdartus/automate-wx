@@ -277,45 +277,55 @@ func checkout(page *rod.Page, cookies []*proto.NetworkCookie, siteUrl string) {
 
 func login(page *rod.Page, cookies []*proto.NetworkCookie, siteUrl string) {
 	fmt.Println("------------------------Start Login------------------------------------")
-	profile_S := "button[aria-label='profile nav']"
-	login_S := "button[data-cy='header-button-login']"
+
+	profileSelector := "button[aria-label='profile nav']"
+
 	user := os.Getenv("USER_WX")
 	if user == "" {
-		log.Fatalln("no env value for user")
-		err := errors.New("no value for getenv")
-		panic(err)
-	}
-	password := os.Getenv("PASSWORD_WX")
-	if password == "" {
-		log.Fatalln("no env value for password")
-		err := errors.New("no value for getenv")
-		panic(err)
+		log.Fatalln("no env value for USER_WX")
 	}
 
-	// page.Timeout(2*time.Second)
+	password := os.Getenv("PASSWORD_WX")
+	if password == "" {
+		log.Fatalln("no env value for PASSWORD_WX")
+	}
+
+	// Navigation vers le site
 	wait := page.WaitNavigation(proto.PageLifecycleEventNameNetworkAlmostIdle)
 	page.MustNavigate(siteUrl)
 	wait()
-	page.WaitStable(2 * time.Second)
-	page.MustElement(profile_S).MustClick()
-	page.WaitStable(2 * time.Second)
-	el := page.MustElement(login_S)
-	el.WaitStable(100 * time.Millisecond)
-	// pagetimeout := page.Timeout(10 * time.Second)
+
+	page.MustWaitStable()
+
+	// Ouverture du menu profil
+	page.MustElement(profileSelector).MustClick()
+	page.MustWaitStable()
+
+	// Recherche du bouton "LOG IN"
+	// Accepte : LOGIN, LOG IN, Log In, login...
+	loginButton := page.MustElementR("button", `(?i)^\s*log\s*in\s*$`)
+
+	loginButton.MustWaitStable()
+
 	wait = page.WaitNavigation(proto.PageLifecycleEventNameNetworkAlmostIdle)
-	el.MustClick()
+	loginButton.MustClick()
 	wait()
 
-	page.WaitStable(4 * time.Second)
+	// Attente de la page de connexion
+	page.MustWaitStable()
+
+	// Saisie des identifiants
 	page.MustElement("#Username").MustInput(user)
 	page.MustElement("#Password").MustInput(password)
-	wait = page.WaitNavigation(proto.PageLifecycleEventNameNetworkAlmostIdle)
+
 	fmt.Println("Send Login")
+
+	wait = page.WaitNavigation(proto.PageLifecycleEventNameNetworkAlmostIdle)
 	page.MustElement("button[value='login']").MustClick()
 	wait()
+
 	cookies, _ = page.Browser().GetCookies()
 	fmt.Println(cookies)
-
 }
 
 func timeoutchan(fn interface{}, name string, duration time.Duration, args ...interface{}) error {
