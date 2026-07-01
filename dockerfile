@@ -1,54 +1,36 @@
-FROM golang:1.24.1-bookworm AS go
+# ---------- Build ----------
+FROM --platform=$BUILDPLATFORM node:22-bookworm AS builder
 
-ARG goproxy="https://proxy.golang.org,direct"
+WORKDIR /app
 
-COPY . /automate
-WORKDIR /automate
-RUN go env -w GOPROXY=$goproxy
-RUN go build -o test-automate ./ 
-RUN go run ./utils/get-browser
+COPY package*.json ./
+RUN npm ci
 
-FROM ubuntu:noble
+COPY . .
 
-# A conserver ?
-COPY --from=go /root/.cache/rod /root/.cache/rod
-RUN ln -s /root/.cache/rod/browser/$(ls /root/.cache/rod/browser)/chrome /usr/bin/chrome
+RUN npm run build
 
-RUN touch /.dockerenv
 
-COPY --from=go /automate/test-automate /usr/bin/
+# ---------- Runtime ----------
+FROM mcr.microsoft.com/playwright:v1.61.0-noble
 
-ARG apt_sources="http://archive.ubuntu.com"
+WORKDIR /app
 
-RUN sed -i "s|http://archive.ubuntu.com|$apt_sources|g" /etc/apt/sources.list && \
-    apt-get update > /dev/null && \
-    apt-get install --no-install-recommends -y \
-    # chromium dependencies
-    libnss3 \
-    libxss1 \
-    libasound2t64 \
-    libxtst6 \
-    libgtk-3-0 \
-    libgbm1 \
-    ca-certificates \
-    # fonts
-    fonts-liberation fonts-noto-color-emoji fonts-noto-cjk \
-    # timezone
-    tzdata \
-    # process reaper
-    dumb-init \
-    # headful mode support, for example: $ xvfb-run chromium-browser --remote-debugging-port=9222
-    xvfb \
-    > /dev/null && \
-    # cleanup
+ENV NODE_ENV=production
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends xvfb && \
     rm -rf /var/lib/apt/lists/*
 
-# process reaper
-ENTRYPOINT ["dumb-init", "--"]
+COPY package*.json ./
+RUN npm ci --omit=dev
 
-CMD ["xvfb-run", "-e", "/dev/stdout","-a", "test-automate"] 
+COPY --from=builder /app/dist ./dist
 
-LABEL org.opencontainers.image.source="https://github.com/rdartus/automate-wx"
-LABEL org.opencontainers.image.authors="rdartus <richard.dartus@gmail.com>" 
-LABEL org.opencontainers.image.description="Wx chapter opener"
-LABEL org.opencontainers.image.licenses="MIT"
+COPY entryoint.sh /usr/local/bin/docker-entrypoint.sh
+
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

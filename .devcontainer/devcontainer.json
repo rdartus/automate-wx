@@ -1,37 +1,37 @@
-//devcontainer.json
 {
-    "name": "GoDev",
-  
-    // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-    // "image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
-    // "image": "ghcr.io/go-rod/rod:latest",
-    "build": { "dockerfile": "Dockerfile" },
-  
-    // Features to add to the dev container. More info: https://containers.dev/features.
-    "features": {
-        "ghcr.io/devcontainers/features/node:1": {},
-        "ghcr.io/devcontainers/features/common-utils:2": {},
-        "ghcr.io/devcontainers/features/git:1": {},
-        "ghcr.io/devcontainers/features/desktop-lite:1": {}
+    "name": "Playwright Scraper",
+
+    "build": {
+        "dockerfile": "Dockerfile"
     },
-  
-    "customizations": {
-      "vscode": {
-        "settings": {},
-        "extensions": ["streetsidesoftware.code-spell-checker", "golang.go","ms-azuretools.vscode-docker"]
-      }
-    },
-  
-    "postCreateCommand": "go install github.com/go-delve/delve/cmd/dlv@latest",
+
+    "remoteUser": "root",
     "forwardPorts": [6080],
-  
-    "portsAttributes": {
-      "3000": {
-        "label": "Hello Remote World",
-        "onAutoForward": "notify"
-      }
+    "features": {
+        "desktop-lite": {
+        "webPort": "6080"
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-playwright.playwright",
+                "dbaeumer.vscode-eslint",
+                "esbenp.prettier-vscode",
+                "eamodio.gitlens"
+            ]
+        }
+    },
+
+    "postCreateCommand": "npm install",
+
+    "containerEnv": {
+        "PLAYWRIGHT_BROWSERS_PATH": "/ms-playwright"
+    },
+
+    "remoteEnv": {
+        "SITE_URL": "${localEnv:SITE_URL}",
+        "USER_WX": "${localEnv:USER_WX}",
+        "PASSWORD_WX": "${localEnv:PASSWORD_WX}"
     }
-  
-  
-    // "remoteUser": "root"
-  }
+}
