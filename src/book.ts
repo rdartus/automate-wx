@@ -53,15 +53,20 @@ export async function goBook(
         name: /chapters/i,
     }).click();
 
-    const books = page.locator("#full-width-tabpanel-0 h3");
+    const books = page.locator("#novel-tabs h3");
     const bookCount = await books.count();
     for (let i = 0; i < bookCount; i++) {
         await books.nth(i).click();
     }
+    // Attendre la fin des éventuelles requêtes déclenchées
+    await page.waitForLoadState("networkidle").catch(() => {});
 
-    const chapters = page.locator(
-        "a:has(div[title='wait'])"
-    );
+    // Attendre que les chapitres soient réellement présents
+    const chapters = page.locator("a:has(div[title='wait'])");
+    await chapters.first().waitFor({
+        state: "visible",
+        timeout: 1000,
+    });
 
     // const count = Math.min(
     //     freeCount,
@@ -77,9 +82,11 @@ export async function goBook(
         if (!href)
             continue;
 
+        const chapterUrl = new URL(href, page.url()).href;
+
         const chapterPage = await goChapter(
             context,
-            href
+            chapterUrl
         );
 
         await chapterPage.close();

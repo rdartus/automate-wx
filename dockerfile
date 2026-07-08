@@ -19,6 +19,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ENV PLAYWRIGHT_HEADFUL=1
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends xvfb && \

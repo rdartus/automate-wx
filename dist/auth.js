@@ -6,29 +6,36 @@ export async function ensureLoggedIn(page) {
 }
 export async function login(page, context, siteUrl) {
     console.log("------------------------Start Login------------------------------------");
+    console.log(`[login] Navigating to ${siteUrl}`);
     const user = process.env.USER_WX;
     const password = process.env.PASSWORD_WX;
     if (!user)
         throw new Error("USER_WX is not defined");
     if (!password)
         throw new Error("PASSWORD_WX is not defined");
+    console.log(`[login] Using account ${user}`);
     await page.goto(siteUrl, {
         waitUntil: "networkidle",
     });
+    console.log("[login] Site loaded, opening profile menu");
     await page.getByRole("button", {
         name: /profile/i,
     }).click();
+    console.log("[login] Opening login form");
     await page.getByRole("button", {
         name: /^log\s*in$/i,
     }).click();
+    console.log("[login] Filling credentials");
     await page.locator("#Username").fill(user);
     await page.locator("#Password").fill(password);
-    console.log("Send Login");
+    console.log("[login] Submitting login form");
     await Promise.all([
         page.waitForLoadState("networkidle"),
         page.locator("button[value='login']").click(),
     ]);
+    console.log("[login] Login request settled");
     const cookies = await context.cookies();
+    console.log(`[login] Cookie count: ${cookies.length}`);
     console.log(cookies);
     return cookies;
 }

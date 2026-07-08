@@ -8,9 +8,11 @@ export async function goChapter(
     console.log("------------------------ Start chapter opening ------------------------------------");
     console.log(`---------Book : ${url} --------`);
 
+    const chapterUrl = new URL(url).href;
+
     const page = await context.newPage();
 
-    await page.goto(url, {
+    await page.goto(chapterUrl, {
         waitUntil: "networkidle",
     });
 
