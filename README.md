@@ -30,7 +30,29 @@ If you prefer a repo-local file, create `.devcontainer/devcontainer.env` and kee
 }
 ```
 
-## Build it with Bake
+## Commands
+
+Install dependencies:
+```bash
+npm install
 ```
-docker buildx bake
+
+Build the TypeScript project:
+```bash
+npm run build
+```
+
+Run the automation script:
+```bash
+npm start
+```
+
+Run in watch mode during development:
+```bash
+npm run dev
+```
+
+Install Playwright browsers if needed:
+```bash
+npx playwright install
 ```

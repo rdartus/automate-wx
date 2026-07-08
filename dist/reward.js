@@ -1,3 +1,4 @@
+import { errors } from "playwright";
 export async function checkin(page, url) {
     await page.goto(url, {
         waitUntil: "networkidle",
@@ -28,10 +29,20 @@ export async function checkout(page, siteUrl) {
             waitUntil: "networkidle",
         });
     }
-    const rewards = page.locator("#app div.mx-auto > div.flex div:nth-child(2) button:not(:disabled)");
-    const count = await rewards.count();
-    for (let i = 0; i < count; i++) {
-        await rewards.nth(i).click();
+    try {
+        const rewards = page.locator("#app div.mx-auto > div.flex div:nth-child(2) button:not(:disabled)");
+        const count = await rewards.count();
+        for (let i = 0; i < count; i++) {
+            await rewards.nth(i).click();
+        }
+        console.log(`Collected ${count} reward(s).`);
     }
-    console.log(`Collected ${count} reward(s).`);
+    catch (error) {
+        if (error instanceof errors.TimeoutError) {
+            console.log("Plus aucune récompense disponible.");
+        }
+        else {
+            throw error;
+        }
+    }
 }

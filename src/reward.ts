@@ -1,4 +1,4 @@
-import { Page, BrowserContext } from "playwright";
+import { Page, BrowserContext, errors } from "playwright";
 
 export async function checkin(page: Page, url: string) {
 
@@ -47,6 +47,7 @@ export async function checkout(
         });
     }
 
+try {
     const rewards = page.locator(
         "#app div.mx-auto > div.flex div:nth-child(2) button:not(:disabled)"
     );
@@ -56,6 +57,13 @@ export async function checkout(
     for (let i = 0; i < count; i++) {
         await rewards.nth(i).click();
     }
-
     console.log(`Collected ${count} reward(s).`);
+} catch (error) {
+    if (error instanceof errors.TimeoutError) {
+        console.log("Plus aucune récompense disponible.");
+    } else {
+        throw error;
+    }
+}
+
 }
