@@ -40,6 +40,7 @@ export async function goBook(
 
     const status = await page
         .locator("div span[role='status'] ~ span div[class*=text]")
+        .filter({hasText: /^\d{2}:\d{2}:\d{2}$/})
         .textContent();
 
     const timer = status?.match(/\d{2}:\d{2}:\d{2}/)?.[0];
@@ -58,37 +59,57 @@ export async function goBook(
     for (let i = 0; i < bookCount; i++) {
         await books.nth(i).click();
     }
+        // Attendre la fin des éventuelles requêtes déclenchées
     // Attendre la fin des éventuelles requêtes déclenchées
     await page.waitForLoadState("networkidle").catch(() => {});
 
-    // Attendre que les chapitres soient réellement présents
-    const chapters = page.locator("a:has(div[title='wait'])");
+    // Tous les chapitres
+    const chapters = page.locator(
+        'div[role="tabpanel"] div:has(> h3) a'
+    );
+
     await chapters.first().waitFor({
         state: "visible",
         timeout: 1000,
     });
 
-    // const count = Math.min(
-    //     freeCount,
-    //     await chapters.count()
-    // );
+    const totalChapters = await chapters.count();
 
-    for (let i = 0; i < freeCount; i++) {
+    // Chapitres possédés
+    const ownedChapters = chapters.filter({
+        hasText: /owned/i,
+    });
 
-        const href = await chapters
-            .nth(i)
-            .getAttribute("href");
+    const ownedCount = await ownedChapters.count();
 
-        if (!href)
+    if (ownedCount === totalChapters) {
+        console.log(
+            `Book fully owned (${ownedCount}/${totalChapters}). Skip.`
+        );
+        return;
+    }
+
+    console.log(
+        `${ownedCount}/${totalChapters} chapters already owned - opening free chapters...`
+    );
+
+    // Chapitres gratuits à récupérer
+    const waitChapters = chapters.filter({
+        has: page.locator("div[title='wait']"),
+    });
+
+    const waitCount = await waitChapters.count();
+
+    for (let i = 0; i < Math.min(freeCount, waitCount); i++) {
+        const href = await waitChapters.nth(i).getAttribute("href");
+
+        if (!href) {
             continue;
+        }
 
         const chapterUrl = new URL(href, page.url()).href;
 
-        const chapterPage = await goChapter(
-            context,
-            chapterUrl
-        );
-
+        const chapterPage = await goChapter(context, chapterUrl);
         await chapterPage.close();
     }
 }

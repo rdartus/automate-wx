@@ -2,13 +2,14 @@ import "dotenv/config";
 import { mkdir } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 
-import { createBrowser } from "./browser.js";
+import { createBrowser,createStealthContext } from "./browser.js";
 import { loadConfig } from "./config.js";
 
 import { login } from "./auth.js";
 import { checkin } from "./reward.js";
 import { checkout } from "./reward.js";
 import { goBook } from "./book.js";
+import { runSannysoftTest } from "./furtif.js";
 
 function attachPageLogging(page: import("playwright").Page) {
     page.on("console", (message) => {
@@ -33,14 +34,7 @@ export async function main() {
     console.log(`[job] Loaded config with ${config.books.length} book(s)`);
 
     const browser = await createBrowser();
-    const context = await browser.newContext({
-        locale: "fr-FR",
-        timezoneId: "Europe/Paris",
-        viewport: {
-            width: 1920,
-            height: 1080,
-        },
-    });    
+    const context = await createStealthContext();
     const page = await context.newPage();
     attachPageLogging(page);
 
@@ -101,9 +95,11 @@ export async function main() {
         await checkout(
             page,
             config.site,
-        );
-
+        );        
         console.log("[job] Playwright run completed");
+
+        // vérifie les résultats du test Sannysoft
+        await runSannysoftTest(page);
 
     } finally {
 
