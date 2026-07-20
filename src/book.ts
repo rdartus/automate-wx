@@ -16,34 +16,44 @@ export async function goBook(
 
     await ensureLoggedIn(page);
 
-    // Livre entièrement gratuit ?
-    if (await page.getByText("Free for All Chapters").last().isVisible().catch(() => false)) {
-        console.log("Book is free, skip.");
-        return;
+    const statusTexts = page.locator(
+        "div span[role='status'] ~ span div[class*=text]"
+    );
+
+    const statusCount = await statusTexts.count();
+
+    let freeCount = 0;
+    let timer: string | undefined;
+
+    for (let i = 0; i < statusCount; i++) {
+        const text = (await statusTexts.nth(i).textContent())?.trim() ?? "";
+
+        // Livre entièrement gratuit
+        if (/^free for all chapters$/i.test(text)) {
+            console.log("Book is free, skip.");
+            return;
+        }
+
+        // "1 free chapter" ou "X free chapters"
+        const freeMatch = text.match(/^(\d+)\s+free chapters?$/i);
+
+        if (freeMatch) {
+            freeCount = Number(freeMatch[1]);
+            continue;
+        }
+
+        // Timer du type "20:58:10"
+        if (/^\d{2}:\d{2}:\d{2}$/.test(text)) {
+            timer = text;
+        }
     }
-
-    const freeText = await page
-        .locator("div span[role='status']")
-        .first()
-        .textContent();
-
-    const freeCount = parseInt(freeText?.split(" ")[0] ?? "0", 10);
 
     if (freeCount < 1) {
         console.log("No free chapters. Skip.");
         return;
     }
-    else {
-        //log du nombre de chapitres gratuits
-        console.log(`${freeCount} free chapters available.`);
-    }
 
-    const status = await page
-        .locator("div span[role='status'] ~ span div[class*=text]")
-        .filter({hasText: /^\d{2}:\d{2}:\d{2}$/})
-        .textContent();
-
-    const timer = status?.match(/\d{2}:\d{2}:\d{2}/)?.[0];
+    console.log(`${freeCount} free chapter${freeCount > 1 ? "s" : ""} available.`);
 
     if (timer && timer !== "23:00:00") {
         console.log(`Next free chapter: ${timer}`);
@@ -59,9 +69,8 @@ export async function goBook(
     for (let i = 0; i < bookCount; i++) {
         await books.nth(i).click();
     }
-        // Attendre la fin des éventuelles requêtes déclenchées
     // Attendre la fin des éventuelles requêtes déclenchées
-    await page.waitForLoadState("networkidle").catch(() => {});
+    await page.waitForLoadState("networkidle").catch(() => { });
 
     // Tous les chapitres
     const chapters = page.locator(

@@ -20,7 +20,7 @@ export async function createBrowser() {
 export async function createStealthContext() {
     // Lance un contexte qui gère à la fois le navigateur et le profil
     const context = await chromium.launchPersistentContext("./user_data", {
-        channel: "chrome", // Utilise le vrai Google Chrome installé dans le conteneur
+        // channel: "chrome", // Utilise le vrai Google Chrome installé dans le conteneur
         headless: false,   // Mode headful indispensable
         locale: "fr-FR",
         timezoneId: "Europe/Paris",
