@@ -1,5 +1,5 @@
 
-import { chromium } from "playwright";
+import { chromium } from "patchright";
 
 declare global {
   interface Window {

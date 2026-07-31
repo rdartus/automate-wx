@@ -1,4 +1,4 @@
-import { Page, BrowserContext } from "playwright";
+import { Page, BrowserContext } from "patchright";
 
 
 export async function ensureLoggedIn(page: Page): Promise<void> {

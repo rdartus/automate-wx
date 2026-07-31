@@ -1,4 +1,4 @@
-import { BrowserContext, Page } from "playwright";
+import { BrowserContext, Page } from "patchright";
 import { goChapter } from "./chapter.js";
 import { ensureLoggedIn } from "./auth.js";
 

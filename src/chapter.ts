@@ -1,4 +1,4 @@
-import { BrowserContext, Page } from "playwright";
+import { BrowserContext, Page } from "patchright";
 
 export async function goChapter(
     context: BrowserContext,

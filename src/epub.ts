@@ -1,7 +1,7 @@
 import { promises as fs } from "fs";
 import { execa } from "execa";
 import path from "node:path";
-import { BrowserContext, Page } from "playwright";
+import { BrowserContext, Page } from "patchright";
 import { htmlToMarkdown } from "./markdown/htmlToMarkdown.js";
 
 

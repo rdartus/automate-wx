@@ -1,4 +1,4 @@
-import { Page, Locator } from "playwright";
+import { Page, Locator } from "patchright";
 import { setTimeout } from "timers/promises";
 
 /**

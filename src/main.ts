@@ -2,7 +2,7 @@ import "dotenv/config";
 import { mkdir } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 
-import { createBrowser, createStealthContext } from "./browser.js";
+import { createStealthContext } from "./browser.js";
 import { loadConfig } from "./config.js";
 
 import { login } from "./auth.js";
@@ -10,7 +10,7 @@ import { checkin } from "./reward.js";
 import { checkout } from "./reward.js";
 import { goBook } from "./book.js";
 import { runSannysoftTest } from "./furtif.js";
-import { Page } from "playwright";
+import { Page } from "patchright";
 
 function attachPageLogging(page: Page) {
     page.on("console", (message) => {
@@ -44,7 +44,6 @@ export async function main() {
     const config = await loadConfig();
     console.log(`[job] Loaded config with ${config.books.length} book(s)`);
 
-    const browser = await createBrowser();
     const context = await createStealthContext();
     const page = await context.newPage();
     attachPageLogging(page);
@@ -117,8 +116,6 @@ export async function main() {
         console.log("[job] Closing browser and context");
 
         await context.close();
-
-        await browser.close();
 
         console.log("[job] Shutdown complete");
 
