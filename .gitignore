@@ -1,6 +1,7 @@
 node_modules/
 docker-compose.yaml
 dist/
+.devcontainer/tmp
 
 # Playwright
 /test-results/

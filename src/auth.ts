@@ -41,29 +41,41 @@ export async function login(
 
     console.log("[login] Opening login form");
 
-    await page.getByRole("button", {
-        name: /^log\s*in$/i,
-    }).click();
+    const logoutText = page.getByText("Log out", {
+        exact: true,
+    });
 
-    console.log("[login] Filling credentials");
+    if (await logoutText.isVisible().catch(() => false)) {
+        console.log("[login] Already logged in - Skipping login");
+        const cookies = await context.cookies();
+        return cookies;
+    } else {
+        console.log("[login] Opening login form");
 
-    await page.locator("#Username").fill(user);
+        await page.getByRole("button", {
+            name: /^log\s*in$/i,
+        }).click();
 
-    await page.locator("#Password").fill(password);
+        console.log("[login] Filling credentials");
 
-    console.log("[login] Submitting login form");
+        await page.locator("#Username").fill(user);
 
-    await Promise.all([
-        page.waitForLoadState("networkidle"),
-        page.locator("button[value='login']").click(),
-    ]);
+        await page.locator("#Password").fill(password);
 
-    console.log("[login] Login request settled");
+        console.log("[login] Submitting login form");
 
-    const cookies = await context.cookies();
+        await Promise.all([
+            page.waitForLoadState("networkidle"),
+            page.locator("button[value='login']").click(),
+        ]);
 
-    console.log(`[login] Cookie count: ${cookies.length}`);
-    console.log(cookies);
+        console.log("[login] Login request settled");
 
-    return cookies;
+        const cookies = await context.cookies();
+
+        console.log(`[login] Cookie count: ${cookies.length}`);
+        console.log(cookies);
+
+        return cookies;
+    }
 }

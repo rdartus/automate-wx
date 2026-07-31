@@ -1,6 +1,17 @@
 # Automate-Wuxiaworld
 
 ## Dev Container
+### Opencode
+
+```shell
+# Crée le dossier temporaire dans votre configuration de conteneur
+mkdir -p /d/Code/automate-wx/.devcontainer/tmp
+
+# Copie votre vrai fichier d'authentification à cet endroit
+cp ~/.local/share/opencode/auth.json /d/Code/automate-wx/.devcontainer/tmp/auth.json
+```
+
+### Other
 The container reads environment variables from the process that launches VS Code, not from the shell inside the container.
 
 Recommended options on Linux:

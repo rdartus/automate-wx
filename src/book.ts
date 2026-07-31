@@ -66,6 +66,7 @@ export async function goBook(
 
     const books = page.locator("#novel-tabs h3");
     const bookCount = await books.count();
+    console.log(`Ufolding ${bookCount} books.`);
     for (let i = 0; i < bookCount; i++) {
         await books.nth(i).click();
     }
@@ -76,11 +77,14 @@ export async function goBook(
     const chapters = page.locator(
         'div[role="tabpanel"] div:has(> h3) a'
     );
-
+    
+    console.log(`Wait 3 seconds for chapters to load`);
     await chapters.first().waitFor({
         state: "visible",
-        timeout: 1000,
+        timeout: 10000,
     });
+    await page.waitForTimeout(3000);
+    console.log(`Chapters Visible`);
 
     const totalChapters = await chapters.count();
 

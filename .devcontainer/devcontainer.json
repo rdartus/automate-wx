@@ -1,37 +1,41 @@
 {
-    "name": "Playwright Scraper",
-
-    "build": {
-        "dockerfile": "Dockerfile"
-    },
-
-    "remoteUser": "root",
-    "forwardPorts": [6080],
-    "features": {
-        "desktop-lite": {
-        "webPort": "6080"
-        }
-    },
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "ms-playwright.playwright",
-                "dbaeumer.vscode-eslint",
-                "esbenp.prettier-vscode",
-                "eamodio.gitlens"
-            ]
-        }
-    },
-
-    "postCreateCommand": "npm install",
-
-    "containerEnv": {
-        "PLAYWRIGHT_BROWSERS_PATH": "/ms-playwright"
-    },
-
-    "remoteEnv": {
-        "SITE_URL": "${localEnv:SITE_URL}",
-        "USER_WX": "${localEnv:USER_WX}",
-        "PASSWORD_WX": "${localEnv:PASSWORD_WX}"
+  "name": "Playwright Scraper",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "remoteUser": "root",
+  "forwardPorts": [
+    6080
+  ],
+  "features": {
+    "ghcr.io/danzilberdan/devcontainers/opencode:0": {},
+    "desktop-lite": {
+      "webPort": "6080"
     }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-playwright.playwright",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "eamodio.gitlens"
+      ]
+    }
+  },
+  "containerEnv": {
+    "PLAYWRIGHT_BROWSERS_PATH": "/ms-playwright"
+  },
+  "remoteEnv": {
+    "SITE_URL": "${localEnv:SITE_URL}",
+    "USER_WX": "${localEnv:USER_WX}",
+    "PASSWORD_WX": "${localEnv:PASSWORD_WX}"
+  },
+  
+  "mounts": [
+    // Monte le fichier temporaire que nous venons de copier manuellement sur le disque D:
+    "source=${localWorkspaceFolder}/.devcontainer/tmp/auth.json,target=/tmp/auth.json,type=bind,consistency=cached"
+  ],
+  
+  "postCreateCommand": "mkdir -p ~/.local/share/opencode && cp /tmp/auth.json ~/.local/share/opencode/auth.json && npm install",
 }

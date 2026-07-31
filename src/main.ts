@@ -2,7 +2,7 @@ import "dotenv/config";
 import { mkdir } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 
-import { createBrowser,createStealthContext } from "./browser.js";
+import { createBrowser, createStealthContext } from "./browser.js";
 import { loadConfig } from "./config.js";
 
 import { login } from "./auth.js";
@@ -10,14 +10,25 @@ import { checkin } from "./reward.js";
 import { checkout } from "./reward.js";
 import { goBook } from "./book.js";
 import { runSannysoftTest } from "./furtif.js";
+import { Page } from "playwright";
 
-function attachPageLogging(page: import("playwright").Page) {
+function attachPageLogging(page: Page) {
     page.on("console", (message) => {
         console.log(`[browser:${message.type()}] ${message.text()}`);
     });
 
     page.on("pageerror", (error) => {
         console.error("[pageerror]", error);
+    });
+    page.on("crash", () => {
+        console.error("[BROWSER] La page Chromium a crashé");
+    });
+    page.on("close", () => {
+        console.error("[BROWSER] La page a été fermée");
+    });
+
+    page.context().browser()?.on("disconnected", () => {
+        console.error("[BROWSER] Le navigateur est déconnecté");
     });
 
     page.on("requestfailed", (request) => {
@@ -76,17 +87,17 @@ export async function main() {
                     book,
                 );
 
-            } catch (err) {
-                await page.screenshot({
-                    path: `errors/book-${Date.now()}.png`,
-                    fullPage: true,
-                });
+            } catch (error) {
                 console.error(
-                    `Error while processing ${book}`,
-                    err
+                    "[ERREUR] Échec de l'automatisation :",
+                    error instanceof Error ? error.message : error
                 );
 
+                await takeErrorScreenshot(page);
+
+                throw error;
             }
+
 
         }
 
@@ -95,7 +106,7 @@ export async function main() {
         await checkout(
             page,
             config.site,
-        );        
+        );
         console.log("[job] Playwright run completed");
 
         // vérifie les résultats du test Sannysoft
@@ -122,4 +133,21 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
         process.exit(1);
 
     });
+}
+
+async function takeErrorScreenshot(page: Page) {
+    try {
+        await page.screenshot({
+            path: "error.png",
+            timeout: 5000,
+            animations: "disabled",
+        });
+
+        console.log("[INFO] Screenshot sauvegardé");
+    } catch (error) {
+        console.error(
+            "[WARN] Échec de la capture d'écran :",
+            error instanceof Error ? error.message : error
+        );
+    }
 }
