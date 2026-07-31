@@ -1,4 +1,4 @@
-import { Page, BrowserContext, errors } from "patchright";
+import { Page, errors } from "patchright";
 
 export async function checkin(page: Page, url: string) {
 

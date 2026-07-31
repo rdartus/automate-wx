@@ -6,22 +6,41 @@ export interface Config {
 
     books: string[];
 
+    /** Livres terminés (scraping fait) — candidats à la génération epub */
+    done?: string[];
+
 }
 
 export async function loadConfig(): Promise<Config> {
 
-    for (const path of [
+    for (const configPath of [
         "/config/list.json",
         "./list.json",
     ]) {
 
         try {
 
-            const json = await readFile(path, "utf8");
+            const json = await readFile(configPath, "utf8");
 
-            return JSON.parse(json);
+            const parsed = JSON.parse(json);
 
-        } catch {
+            // Validation minimale : on s'assure que les champs obligatoires sont présents
+            if (typeof parsed.site !== "string" || parsed.site.trim() === "") {
+                throw new Error(`list.json invalide : "site" doit être une URL non vide`);
+            }
+
+            if (!Array.isArray(parsed.books)) {
+                throw new Error(`list.json invalide : "books" doit être un tableau`);
+            }
+
+            return parsed as Config;
+
+        } catch (err) {
+
+            // On propage les erreurs de validation, on ignore seulement les erreurs de lecture
+            if (err instanceof SyntaxError || (err instanceof Error && err.message.startsWith("list.json invalide"))) {
+                throw err;
+            }
 
         }
 

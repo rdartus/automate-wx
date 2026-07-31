@@ -8,7 +8,7 @@ export function escapeMarkdown(text: string): string {
         .replace(/\[/g, "\\[")
         .replace(/\]/g, "\\]")
         .replace(/#/g, "\\#")
-        .replace(/>/g, "\\>")
+        // '>' n'est pas échappé : Pandoc l'interprète comme blockquote (comportement souhaité)
         .replace(/\|/g, "\\|");
 }
 export function cleanText(

@@ -2,6 +2,10 @@ import { BrowserContext, Page } from "patchright";
 import { goChapter } from "./chapter.js";
 import { ensureLoggedIn } from "./auth.js";
 
+// Timer affiché quand le prochain chapitre gratuit est disponible dans moins d'une heure
+// (la valeur "23:00:00" correspond au reset quotidien — dans ce cas on procède quand même)
+const TIMER_READY = "23:00:00";
+
 export async function goBook(
     context: BrowserContext,
     page: Page,
@@ -55,7 +59,7 @@ export async function goBook(
 
     console.log(`${freeCount} free chapter${freeCount > 1 ? "s" : ""} available.`);
 
-    if (timer && timer !== "23:00:00") {
+    if (timer && timer !== TIMER_READY) {
         console.log(`Next free chapter: ${timer}`);
         return;
     }

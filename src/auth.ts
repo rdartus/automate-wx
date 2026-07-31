@@ -13,10 +13,9 @@ export async function login(
     page: Page,
     context: BrowserContext,
     siteUrl: string
-) {
+): Promise<void> {
 
-    console.log("------------------------Start Login------------------------------------");
-    console.log(`[login] Navigating to ${siteUrl}`);
+    console.log("[login] Navigating to", siteUrl);
 
     const user = process.env.USER_WX;
     const password = process.env.PASSWORD_WX;
@@ -39,43 +38,36 @@ export async function login(
         name: /profile/i,
     }).click();
 
-    console.log("[login] Opening login form");
-
     const logoutText = page.getByText("Log out", {
         exact: true,
     });
 
     if (await logoutText.isVisible().catch(() => false)) {
         console.log("[login] Already logged in - Skipping login");
-        const cookies = await context.cookies();
-        return cookies;
-    } else {
-        console.log("[login] Opening login form");
-
-        await page.getByRole("button", {
-            name: /^log\s*in$/i,
-        }).click();
-
-        console.log("[login] Filling credentials");
-
-        await page.locator("#Username").fill(user);
-
-        await page.locator("#Password").fill(password);
-
-        console.log("[login] Submitting login form");
-
-        await Promise.all([
-            page.waitForLoadState("networkidle"),
-            page.locator("button[value='login']").click(),
-        ]);
-
-        console.log("[login] Login request settled");
-
-        const cookies = await context.cookies();
-
-        console.log(`[login] Cookie count: ${cookies.length}`);
-        console.log(cookies);
-
-        return cookies;
+        return;
     }
+
+    console.log("[login] Opening login form");
+
+    await page.getByRole("button", {
+        name: /^log\s*in$/i,
+    }).click();
+
+    console.log("[login] Filling credentials");
+
+    await page.locator("#Username").fill(user);
+    await page.locator("#Password").fill(password);
+
+    console.log("[login] Submitting login form");
+
+    await Promise.all([
+        page.waitForLoadState("networkidle"),
+        page.locator("button[value='login']").click(),
+    ]);
+
+    console.log("[login] Login request settled");
+
+    const cookies = await context.cookies();
+    // On logue uniquement les noms pour ne pas exposer les valeurs en clair dans les logs
+    console.log(`[login] Session établie — ${cookies.length} cookie(s) : ${cookies.map(c => c.name).join(", ")}`);
 }

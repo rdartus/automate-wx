@@ -6,11 +6,12 @@ import { createStealthContext } from "./browser.js";
 import { loadConfig } from "./config.js";
 
 import { login } from "./auth.js";
-import { checkin } from "./reward.js";
-import { checkout } from "./reward.js";
+import { checkin, checkout } from "./reward.js";
 import { goBook } from "./book.js";
 import { runSannysoftTest } from "./furtif.js";
 import { Page } from "patchright";
+import { generateEpubForDone } from "./epub.js";
+
 
 function attachPageLogging(page: Page) {
     page.on("console", (message) => {
@@ -49,6 +50,9 @@ export async function main() {
     attachPageLogging(page);
 
     await mkdir("errors", { recursive: true });
+
+    // Note: ce dossier sert à stocker les screenshots d'erreur (takeErrorScreenshot)
+    // Le chemin est fixe ("error.png" dans le cwd) — pourrait évoluer vers errors/<timestamp>.png
 
     try {
 
@@ -110,6 +114,9 @@ export async function main() {
 
         // vérifie les résultats du test Sannysoft
         await runSannysoftTest(page);
+
+        // // Génère un EPUB pour les chapitres terminés
+        // await generateEpubForDone(config, "dist");
 
     } finally {
 
