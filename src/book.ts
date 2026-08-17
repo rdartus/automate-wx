@@ -15,7 +15,7 @@ export async function goBook(
     console.log(`--------- Book : ${url} --------`);
 
     await page.goto(url, {
-        waitUntil: "networkidle",
+        waitUntil: "domcontentloaded",
     });
 
     await ensureLoggedIn(page);

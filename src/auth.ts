@@ -5,7 +5,7 @@ export async function ensureLoggedIn(page: Page): Promise<void> {
     const vip = page.getByRole("button", { name: /vip/i });
 
     if (!(await vip.isVisible().catch(() => false))) {
-        await page.reload({ waitUntil: "networkidle" });
+        await page.reload({ waitUntil: "domcontentloaded" });
     }
 }
 
@@ -29,7 +29,7 @@ export async function login(
     console.log(`[login] Using account ${user}`);
 
     await page.goto(siteUrl, {
-        waitUntil: "networkidle",
+        waitUntil: "domcontentloaded",
     });
 
     console.log("[login] Site loaded, opening profile menu");

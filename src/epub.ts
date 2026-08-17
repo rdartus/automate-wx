@@ -151,7 +151,7 @@ export async function getTextChapter(
 
     try {
         await page.goto(chapterUrl, {
-            waitUntil: "networkidle",
+            waitUntil: "domcontentloaded",
         });
 
         const chapterContent = page.locator("div.prose");

@@ -67,7 +67,7 @@ export async function runSannysoftTest(page: Page): Promise<void> {
     
     try {
         // 1. Navigation vers le banc d'essai
-        await page.goto("https://bot.sannysoft.com/", { waitUntil: "networkidle" });
+        await page.goto("https://bot.sannysoft.com/", { waitUntil: "domcontentloaded" });
         
         // Un léger délai pour laisser les scripts de détection finir de s'exécuter
         await page.waitForTimeout(2000);
