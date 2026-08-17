@@ -12,7 +12,7 @@ RUN npm run build
 
 
 # ---------- Runtime ----------
-FROM mcr.microsoft.com/playwright:v1.61.0-noble
+FROM mcr.microsoft.com/playwright:v1.61.1-noble
 
 WORKDIR /app
 
