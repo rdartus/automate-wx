@@ -12,12 +12,12 @@ export async function goChapter(
 
     const page = await context.newPage();
 
-    await page.goto(chapterUrl, { waitUntil: "domcontentloaded" });
+    await page.goto(chapterUrl, { waitUntil: "networkidle" });
 
     if (!(await waitForVip(page))) {
         console.warn("VIP button not found, reloading...");
 
-        await page.reload({ waitUntil: "domcontentloaded" });
+        await page.reload({ waitUntil: "networkidle" });
 
         if (!(await waitForVip(page))) {
             throw new Error("Account / Loading error");

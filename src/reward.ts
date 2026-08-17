@@ -3,12 +3,12 @@ import { Page, errors } from "patchright";
 export async function checkin(page: Page, url: string) {
 
     await page.goto(url, {
-        waitUntil: "domcontentloaded",
+        waitUntil: "networkidle",
     });
 
     if (!(await page.getByRole("button", { name: /vip/i }).count())) {
         await page.reload({
-            waitUntil: "domcontentloaded",
+            waitUntil: "networkidle",
         });
     }
 
@@ -34,7 +34,7 @@ export async function checkout(
 
     await page.goto(
         `${siteUrl}manage/subscriptions/daily-rewards`,
-        { waitUntil: "domcontentloaded" }
+        { waitUntil: "networkidle" }
     );
 
     const vipButton = page.getByRole("button", {
@@ -43,7 +43,7 @@ export async function checkout(
 
     if (!(await vipButton.isVisible().catch(() => false))) {
         await page.reload({
-            waitUntil: "domcontentloaded",
+            waitUntil: "networkidle",
         });
     }
 
