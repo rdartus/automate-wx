@@ -78,8 +78,22 @@ export async function login(
     }
     
     console.log("[login] Login request settled");
-
+    await waitForVip(page)
+    console.log("wait for VIP");
     const cookies = await context.cookies();
     // On logue uniquement les noms pour ne pas exposer les valeurs en clair dans les logs
     console.log(`[login] Session établie — ${cookies.length} cookie(s) : ${cookies.map(c => c.name).join(", ")}`);
+}
+
+
+async function waitForVip(page: Page, timeout = 5000): Promise<boolean> {
+    try {
+        await page.getByRole("button", { name: /vip/i }).waitFor({
+            state: "visible",
+            timeout,
+        });
+        return true;
+    } catch {
+        return false;
+    }
 }
