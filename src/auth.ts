@@ -59,12 +59,24 @@ export async function login(
     await page.locator("#Password").fill(password);
 
     console.log("[login] Submitting login form");
-
-    await Promise.all([
-        page.waitForLoadState("networkidle"),
-        page.locator("button[value='login']").click(),
-    ]);
-
+    await page.locator("button[value='login']").click();
+    
+    console.log("[login] Waiting for login result");
+    const LOGIN_TIMEOUT = 20000;
+    try {
+        await Promise.race([
+            // Succès : le formulaire (modal) disparaît du DOM
+            page.locator("#Username").waitFor({ state: "detached", timeout: LOGIN_TIMEOUT }),
+            // Succès alternatif : le menu profil affiche déjà "Log out"
+            page.getByText("Log out", { exact: true }).waitFor({ state: "visible", timeout: LOGIN_TIMEOUT }),
+        ]);
+    } catch {
+        throw new Error(
+            `[login] Aucun signal de connexion réussie après ${LOGIN_TIMEOUT}ms ` +
+            `(identifiants invalides, captcha, ou sélecteur obsolète)`
+        );
+    }
+    
     console.log("[login] Login request settled");
 
     const cookies = await context.cookies();
