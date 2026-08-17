@@ -8,3 +8,4 @@ test-results
 .devcontainer
 debug.png
 *.log
+user_data/
