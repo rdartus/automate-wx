@@ -3,6 +3,7 @@ import { execa } from "execa";
 import path from "node:path";
 import { BrowserContext, Page } from "patchright";
 import { htmlToMarkdown } from "./markdown/htmlToMarkdown.js";
+import { ensureLoggedIn, waitForDomStable } from "./utils.js";
 
 /**
  * Génère le fichier metadata.yaml pour Pandoc à partir des infos de la page du roman.
@@ -151,9 +152,10 @@ export async function getTextChapter(
 
     try {
         await page.goto(chapterUrl, {
-            waitUntil: "networkidle",
+            waitUntil: "domcontentloaded",
         });
-
+        await ensureLoggedIn(page);
+        await waitForDomStable(page);
         const chapterContent = page.locator("div.prose");
 
         await chapterContent.waitFor({
@@ -180,8 +182,8 @@ export async function generateText(page: Page, context: BrowserContext, outputDi
         await books.nth(i).click();
     }
     // Attendre la fin des éventuelles requêtes déclenchées
-    await page.waitForLoadState("networkidle").catch(() => {});
-
+    await page.waitForLoadState("domcontentloaded").catch(() => {});
+    await waitForDomStable(page);
     // Tous les chapitres
     const chapters = page.locator(
         'div[role="tabpanel"] div:has(> h3) a'

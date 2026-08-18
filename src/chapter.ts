@@ -1,4 +1,5 @@
 import { BrowserContext, Page } from "patchright";
+import { ensureLoggedIn, waitForDomStable } from "./utils.js";
 
 export async function goChapter(
     context: BrowserContext,
@@ -12,30 +13,9 @@ export async function goChapter(
 
     const page = await context.newPage();
 
-    await page.goto(chapterUrl, { waitUntil: "networkidle" });
-
-    if (!(await waitForVip(page))) {
-        console.warn("VIP button not found, reloading...");
-
-        await page.reload({ waitUntil: "networkidle" });
-
-        if (!(await waitForVip(page))) {
-            throw new Error("Account / Loading error");
-        }
-    }
-
+    await page.goto(chapterUrl, { waitUntil: "domcontentloaded" });
+    await ensureLoggedIn(page);
+    await waitForDomStable(page);
     return page;
-}
-
-async function waitForVip(page: Page, timeout = 5000): Promise<boolean> {
-    try {
-        await page.getByRole("button", { name: /vip/i }).waitFor({
-            state: "visible",
-            timeout,
-        });
-        return true;
-    } catch {
-        return false;
-    }
 }
 

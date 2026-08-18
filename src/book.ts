@@ -1,6 +1,6 @@
 import { BrowserContext, Page } from "patchright";
 import { goChapter } from "./chapter.js";
-import { ensureLoggedIn } from "./auth.js";
+import { ensureLoggedIn, waitForDomStable } from "./utils.js";
 
 // Timer affiché quand le prochain chapitre gratuit est disponible dans moins d'une heure
 // (la valeur "23:00:00" correspond au reset quotidien — dans ce cas on procède quand même)
@@ -15,10 +15,10 @@ export async function goBook(
     console.log(`--------- Book : ${url} --------`);
 
     await page.goto(url, {
-        waitUntil: "networkidle",
+        waitUntil: "domcontentloaded",
     });
-
     await ensureLoggedIn(page);
+    await waitForDomStable(page);
 
     const statusTexts = page.locator(
         "div span[role='status'] ~ span div[class*=text]"
@@ -75,8 +75,8 @@ export async function goBook(
         await books.nth(i).click();
     }
     // Attendre la fin des éventuelles requêtes déclenchées
-    await page.waitForLoadState("networkidle").catch(() => { });
-
+    await page.waitForLoadState("domcontentloaded").catch(() => { });
+    await waitForDomStable(page);
     // Tous les chapitres
     const chapters = page.locator(
         'div[role="tabpanel"] div:has(> h3) a'

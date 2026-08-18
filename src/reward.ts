@@ -1,16 +1,13 @@
 import { Page, errors } from "patchright";
+import { ensureLoggedIn, waitForDomStable } from "./utils.js";
 
 export async function checkin(page: Page, url: string) {
 
     await page.goto(url, {
-        waitUntil: "networkidle",
+        waitUntil: "domcontentloaded",
     });
-
-    if (!(await page.getByRole("button", { name: /vip/i }).count())) {
-        await page.reload({
-            waitUntil: "networkidle",
-        });
-    }
+    await ensureLoggedIn(page);
+    await waitForDomStable(page);
 
     const gotIt = page.getByRole("button", {
         name: /^got it$/i,
@@ -34,18 +31,11 @@ export async function checkout(
 
     await page.goto(
         `${siteUrl}manage/subscriptions/daily-rewards`,
-        { waitUntil: "networkidle" }
+        { waitUntil: "domcontentloaded" }
     );
 
-    const vipButton = page.getByRole("button", {
-        name: /vip/i,
-    });
-
-    if (!(await vipButton.isVisible().catch(() => false))) {
-        await page.reload({
-            waitUntil: "networkidle",
-        });
-    }
+    await ensureLoggedIn(page);
+    await waitForDomStable(page);
 
 try {
     const rewards = page.locator(

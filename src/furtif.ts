@@ -1,5 +1,6 @@
 import { Page, Locator } from "patchright";
 import { setTimeout } from "timers/promises";
+import { waitForDomStable } from "./utils.js";
 
 /**
  * Génère les points d'une courbe de Bézier cubique entre un point A et un point B
@@ -67,8 +68,8 @@ export async function runSannysoftTest(page: Page): Promise<void> {
     
     try {
         // 1. Navigation vers le banc d'essai
-        await page.goto("https://bot.sannysoft.com/", { waitUntil: "networkidle" });
-        
+        await page.goto("https://bot.sannysoft.com/", { waitUntil: "domcontentloaded" });
+        await waitForDomStable(page);
         // Un léger délai pour laisser les scripts de détection finir de s'exécuter
         await page.waitForTimeout(2000);
 

@@ -1,13 +1,6 @@
 import { Page, BrowserContext } from "patchright";
+import { waitForDomStable } from "./utils.js";
 
-
-export async function ensureLoggedIn(page: Page): Promise<void> {
-    const vip = page.getByRole("button", { name: /vip/i });
-
-    if (!(await vip.isVisible().catch(() => false))) {
-        await page.reload({ waitUntil: "networkidle" });
-    }
-}
 
 export async function login(
     page: Page,
@@ -29,8 +22,9 @@ export async function login(
     console.log(`[login] Using account ${user}`);
 
     await page.goto(siteUrl, {
-        waitUntil: "networkidle",
+        waitUntil: "domcontentloaded",
     });
+    await waitForDomStable(page);
 
     console.log("[login] Site loaded, opening profile menu");
 
