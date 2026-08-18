@@ -5,6 +5,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "tsx src/main.ts",
+    "test": "PWDEBUG=console tsx src/main.ts",
     "manual-test": "tsx src/test-manual.ts",
     "dev": "tsx watch src/main.ts",
     "lint": "eslint .",

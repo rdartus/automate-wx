@@ -11,7 +11,7 @@ import { goBook } from "./book.js";
 import { runSannysoftTest } from "./furtif.js";
 import { Page } from "patchright";
 import { generateEpubForDone } from "./epub.js";
-
+import * as fs from 'fs/promises';
 
 function attachPageLogging(page: Page) {
     page.on("console", (message) => {
@@ -95,7 +95,11 @@ export async function main() {
                     "[ERREUR] Échec de l'automatisation :",
                     error instanceof Error ? error.message : error
                 );
-
+                // await page.pause();
+                // await page.waitForEvent('close', { timeout: 0 });
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const htmlContent = await page.content();
+                await fs.writeFile(`error-${timestamp}.html`, htmlContent, 'utf-8');
                 await takeErrorScreenshot(page);
 
                 throw error;

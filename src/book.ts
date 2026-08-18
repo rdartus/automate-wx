@@ -68,6 +68,7 @@ export async function goBook(
         name: /chapters/i,
     }).click();
 
+    // await waitForDomStable(page);
     const books = page.locator("#novel-tabs h3");
     const bookCount = await books.count();
     console.log(`Ufolding ${bookCount} books.`);
@@ -76,18 +77,26 @@ export async function goBook(
     }
     // Attendre la fin des éventuelles requêtes déclenchées
     await page.waitForLoadState("domcontentloaded").catch(() => { });
+    await page.waitForTimeout(3000);
+    // Filtre uniquement les éléments visibles, puis attend le premier
     await waitForDomStable(page);
     // Tous les chapitres
-    const chapters = page.locator(
-        'div[role="tabpanel"] div:has(> h3) a'
-    );
+
+    const chapters = page.locator('div[role="tabpanel"] div[role="region"] a')
+    // Ne fonctionne pas pour tmr
+    // // const chapters = page.locator('div[role="tabpanel"] div:has(> h3) a')
+
     
     console.log(`Wait 3 seconds for chapters to load`);
+    // await chapters.locator("visible=true").first().waitFor({
+    //     state: "visible",
+    //     timeout: 10000,
+    // });
+
     await chapters.first().waitFor({
         state: "visible",
         timeout: 10000,
     });
-    await page.waitForTimeout(3000);
     console.log(`Chapters Visible`);
 
     const totalChapters = await chapters.count();

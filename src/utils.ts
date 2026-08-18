@@ -12,7 +12,7 @@ export async function waitForDomStable(
     page: Page,
     options: WaitForPageReadyOptions = {}
 ): Promise<void> {
-    const { timeout = 30000, networkIdleTimeout = 5000, settleDelay = 1000 } = options;
+    const { timeout = 30000, networkIdleTimeout = 10000, settleDelay = 1000 } = options;
 
     await page.waitForLoadState("domcontentloaded", { timeout });
 
