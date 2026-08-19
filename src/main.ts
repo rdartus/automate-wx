@@ -97,9 +97,6 @@ export async function main() {
                 );
                 // await page.pause();
                 // await page.waitForEvent('close', { timeout: 0 });
-                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-                const htmlContent = await page.content();
-                await fs.writeFile(`error-${timestamp}.html`, htmlContent, 'utf-8');
                 await takeErrorScreenshot(page);
 
                 throw error;

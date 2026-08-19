@@ -34,7 +34,8 @@ export async function createStealthContext() {
             "--disable-setuid-sandbox"
         ]
     });
-
+    await context.setDefaultTimeout(60_000);
+    await context.setDefaultNavigationTimeout(90_000);
     // Injecte des scripts au démarrage de chaque page pour nettoyer les dernières traces JS
     await context.addInitScript(() => {
         // Force la suppression finale du drapeau webdriver au niveau JS
