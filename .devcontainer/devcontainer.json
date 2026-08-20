@@ -17,9 +17,9 @@
     "vscode": {
       "extensions": [
         "ms-playwright.playwright",
+        "mhutchie.git-graph",
         "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode",
-        "eamodio.gitlens"
+        "esbenp.prettier-vscode"
       ]
     }
   },

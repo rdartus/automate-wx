@@ -3,6 +3,8 @@ docker-compose.yaml
 dist/
 .devcontainer/tmp
 
+list.json
+
 # Playwright
 /test-results/
 /playwright-report/

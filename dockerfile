@@ -21,8 +21,15 @@ RUN npm ci --omit=dev
 RUN npx patchright install chrome --with-deps
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends xvfb pandoc && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends \
+    xvfb \
+    pandoc \
+    vainfo \
+    libva-drm2 \
+    libva2 \
+    mesa-va-drivers \
+    intel-media-va-driver \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/dist ./dist
 COPY entrypoint.sh /usr/local/bin/docker-entrypoint.sh

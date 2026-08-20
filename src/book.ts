@@ -24,8 +24,20 @@ export async function goBook(
         "div span[role='status'] ~ span div[class*=text]"
     );
 
-    const statusCount = await statusTexts.count();
 
+    let statusCount = 0;
+
+    try {
+    // On attend max 3 secondes que l'élément soit présent dans le DOM
+    await statusTexts.first().waitFor({ state: 'attached', timeout: 10000 });
+    
+    // S'il est présent, on compte le nombre total
+    statusCount = await statusTexts.count();
+    } catch {
+    // En cas de timeout (élément absent), l'erreur est interceptée et statusCount reste à 0
+    console.log("Aucun statut trouvé sur la page.");
+    }
+    
     let freeCount = 0;
     let timer: string | undefined;
 

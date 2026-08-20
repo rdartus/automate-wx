@@ -69,51 +69,65 @@ export async function runSannysoftTest(page: Page): Promise<void> {
     try {
         // 1. Navigation vers le banc d'essai
         await page.goto("https://bot.sannysoft.com/", { waitUntil: "domcontentloaded" });
-        await waitForDomStable(page);
-        // Un léger délai pour laisser les scripts de détection finir de s'exécuter
-        await page.waitForTimeout(2000);
+        
+        // Attendre que la table de détection soit chargée dans le DOM
+        await page.waitForSelector("table tr", { timeout: 10000 });
+        // Petit délai pour laisser les tests JS asynchrones de Sannysoft se finaliser
+        await page.waitForTimeout(1500);
 
         console.log(`[TEST] URL actuelle : ${page.url()}`);
 
-        // 2. Extraction dynamique des données du premier tableau (Intoli Tests)
+        // 2. Extraction dynamique de tous les résultats de test
         const testResults = await page.evaluate(() => {
             const rows = document.querySelectorAll("table tr");
-            const data: Record<string, string> = {};
+            const data: Record<string, { result: string; failed: boolean }> = {};
             
             rows.forEach(row => {
                 const cells = row.querySelectorAll("td");
                 if (cells.length >= 2) {
                     const name = cells[0].textContent?.trim() || "";
                     const result = cells[1].textContent?.trim() || "";
-                    if (name) data[name] = result;
+                    // Sannysoft applique la classe "failed" ou "passed" sur la cellule de résultat
+                    const failed = cells[1].classList.contains("failed") || cells[1].classList.contains("warn");
+                    if (name) data[name] = { result, failed };
                 }
             });
             return data;
         });
 
-        // 3. Extraction ciblée des variables critiques liées au GPU / Masquage
-        const webglVendor = testResults["WebGL Vendor"] || "Non trouvé";
-        const webglRenderer = testResults["WebGL Renderer"] || "Non trouvé";
-        const webdriverStatus = testResults["WebDriver (New)"] || "Non trouvé";
+        // 3. Extraction des variables clés
+        const webglVendor = testResults["WebGL Vendor"]?.result || "Non trouvé";
+        const webglRenderer = testResults["WebGL Renderer"]?.result || "Non trouvé";
+        
+        // Sannysoft nomme parfois la ligne "WebDriver" ou "WebDriver (New)"
+        const webdriverEntry = testResults["WebDriver (New)"] || testResults["WebDriver"];
+        const webdriverStatus = webdriverEntry?.result || "Non trouvé";
+        const webdriverFailed = webdriverEntry?.failed ?? false;
 
-        // 4. Logs formatés pour la sortie standard du Pod Kubernetes
+        // 4. Logs formatés
         console.log("------------------------------------------------");
         console.log(`STATUS WEBDRIVER : ${webdriverStatus}`);
         console.log(`WEBGL VENDOR     : ${webglVendor}`);
         console.log(`WEBGL RENDERER   : ${webglRenderer}`);
         console.log("------------------------------------------------");
 
-        // Analyse automatisée dans vos logs
-        if (webglRenderer.includes("SwiftShader") || webglRenderer.includes("Mesa")) {
-            console.log("❌ ALERTE : L'accélération matérielle iGPU N'EST PAS active. Le conteneur utilise un rendu CPU logiciel (détectable).");
+        // 5. Analyse du rendu GPU (Détection spécifique des rendus logiciels CPU)
+        const softwareRenderers = ["swiftshader", "llvmpipe", "softpipe", "software rasterizer"];
+        const lowerRenderer = webglRenderer.toLowerCase();
+        
+        const isSoftwareRendering = softwareRenderers.some(sw => lowerRenderer.includes(sw));
+
+        if (isSoftwareRendering || webglRenderer === "Non trouvé") {
+            console.log("❌ ALERTE : Rendu logiciel détecté ! Le conteneur n'utilise pas l'iGPU (Rendu CPU : " + webglRenderer + ")");
         } else {
-            console.log("✅ SUCCÈS : L'accélération iGPU est active (Le GPU Intel ou AMD est bien exploité par le navigateur !)");
+            console.log("✅ SUCCÈS : L'accélération iGPU est active (" + webglRenderer + ")");
         }
 
-        if (webdriverStatus.toLowerCase().includes("fail")) {
+        // 6. Analyse du Stealth (WebDriver)
+        if (webdriverFailed || webdriverStatus.toLowerCase().includes("present")) {
             console.log("❌ ALERTE : Le drapeau navigator.webdriver a été détecté par la page.");
         } else {
-            console.log("✅ SUCCÈS : Le drapeau navigator.webdriver est correctement masqué.");
+            console.log("✅ SUCCÈS : Le drapeau navigator.webdriver est correctement masqué (missing).");
         }
 
     } catch (error) {

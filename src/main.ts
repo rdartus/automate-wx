@@ -45,9 +45,10 @@ export async function main() {
     const config = await loadConfig();
     console.log(`[job] Loaded config with ${config.books.length} book(s)`);
 
-    const context = await createStealthContext();
-    const page = await context.newPage();
-    attachPageLogging(page);
+    let currentContext = await createStealthContext();
+    let currentPage = await currentContext.newPage();
+
+    attachPageLogging(currentPage);
 
     await mkdir("errors", { recursive: true });
 
@@ -59,35 +60,37 @@ export async function main() {
         console.log("[step] login");
 
         await login(
-            page,
-            context,
+            currentPage,
+            currentContext,
             config.site,
         );
 
         console.log("[step] check-in");
 
         await checkin(
-            page,
+            currentPage,
             config.site,
         );
 
         console.log("[step] initial checkout");
 
         await checkout(
-            page,
+            currentPage,
             config.site,
         );
 
-        for (const book of config.books) {
+        // Fréquence de nettoyage (ex: recyclage complet tous les 10 livres)
+        const RECYCLE_EVERY = 10;
 
+        for (let i = 0; i < config.books.length; i++) {
+            const book = config.books[i];
             try {
-
-                console.log(`[step] book ${book}`);
+                console.log(`[step] book ${book} (${i + 1}/${config.books.length})`);
 
                 await goBook(
-                    context,
-                    page,
-                    book,
+                currentContext,
+                currentPage,
+                book
                 );
 
             } catch (error) {
@@ -97,24 +100,39 @@ export async function main() {
                 );
                 // await page.pause();
                 // await page.waitForEvent('close', { timeout: 0 });
-                await takeErrorScreenshot(page);
+                await takeErrorScreenshot(currentPage);
 
                 throw error;
-            }
+            } finally {
+                // Purge complète de Chromium tous les X livres (sauf au dernier tour)
+                if ((i + 1) % RECYCLE_EVERY === 0 && i < config.books.length - 1) {
+                console.log("🧹 Purge mémoire : Recyclage de Chrome...");
 
+                if (!currentPage.isClosed()) {
+                    await currentPage.close();
+                }
+                
+                // Ferme Chrome : sauvegarde ./user_data et vide 100 % de la RAM
+                await currentContext.close();
+
+                // Redémarre à neuf en conservant la session
+                currentContext = await createStealthContext();
+                currentPage = await currentContext.newPage();
+                }
+            }
 
         }
 
         // Récupère les éventuelles récompenses débloquées
         console.log("[step] final checkout");
         await checkout(
-            page,
+            currentPage,
             config.site,
         );
         console.log("[job] Playwright run completed");
 
         // vérifie les résultats du test Sannysoft
-        await runSannysoftTest(page);
+        await runSannysoftTest(currentPage);
 
         // // Génère un EPUB pour les chapitres terminés
         // await generateEpubForDone(config, "dist");
@@ -123,7 +141,7 @@ export async function main() {
 
         console.log("[job] Closing browser and context");
 
-        await context.close();
+        await currentContext.close();
 
         console.log("[job] Shutdown complete");
 
